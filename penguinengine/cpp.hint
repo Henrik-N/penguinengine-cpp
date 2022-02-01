@@ -5,3 +5,5 @@
 #define PENGUIN_API __attribute__((visibility("default")))
 #define PENGUIN_API __declspec(dllimport)
 #define PENGUIN_API
+#define OK
+#

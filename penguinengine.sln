@@ -5,8 +5,6 @@ VisualStudioVersion = 17.0.32112.339
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "penguinengine", "penguinengine\penguinengine.vcxproj", "{EE6DB8E9-9D8F-4A91-8FD8-26DE9DF0FD08}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sandbox", "sandbox\sandbox.vcxproj", "{AE2FDBB7-0AD2-48FB-8103-4346E286E156}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -17,10 +15,6 @@ Global
 		{EE6DB8E9-9D8F-4A91-8FD8-26DE9DF0FD08}.Debug|x64.Build.0 = Debug|x64
 		{EE6DB8E9-9D8F-4A91-8FD8-26DE9DF0FD08}.Release|x64.ActiveCfg = Release|x64
 		{EE6DB8E9-9D8F-4A91-8FD8-26DE9DF0FD08}.Release|x64.Build.0 = Release|x64
-		{AE2FDBB7-0AD2-48FB-8103-4346E286E156}.Debug|x64.ActiveCfg = Debug|x64
-		{AE2FDBB7-0AD2-48FB-8103-4346E286E156}.Debug|x64.Build.0 = Debug|x64
-		{AE2FDBB7-0AD2-48FB-8103-4346E286E156}.Release|x64.ActiveCfg = Release|x64
-		{AE2FDBB7-0AD2-48FB-8103-4346E286E156}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

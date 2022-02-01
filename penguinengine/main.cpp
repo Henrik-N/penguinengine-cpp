@@ -1,62 +1,58 @@
-#include <cstdio>
+#include "defines.h"
+#include <iostream>
 
-#include "macros.h"
 
 import application;
 
-import game_instance;
-import logger;
+import gameInstance;
 
-import penguin_t;
-
-// TODO extern initalizer for this
-using namespace application;
-
-static f32 accumulated_time = 0;
-
-struct Game final : public game_instance::GameInstance {
-	constexpr game_instance::GameConfig config() override {
-		return game_instance::GameConfig{
-			.application_name = "penguin engine",
-			.window_start_x = 100,
-			.window_start_y = 100,
-			.window_start_width = 800,
-			.window_start_height = 600,
+struct Game final : public GameInstance {
+	GameConfig config() override {
+		const GameConfig config{
+			.applicationName = "penguin engine",
+			.windowStartX = 100,
+			.windowStartY = 100,
+			.windowStartWidth = 800,
+			.windowStartHeight = 600,
 		};
+		return config;
 	}
 
-	virtual bool init() override {
-		ltrace("game init");
-		return true;
+	virtual void init() override {
+
 	};
 
-	virtual bool update(f32 dt) override {
-		ltrace("game update {}", dt);
-		return true;
+	virtual void update(f32 dt) override {
+
 	};
 
-	virtual bool render(f32 dt) override {
-		return true;
+	virtual void render(f32 dt) override {
+		
 	}
 
-	virtual bool onWindowResize(u32 width, u32 height) override {
-		linfo("window resize event");
-		return true;
+	virtual void onWindowResize(u32 width, u32 height) override {
+		//INFO("window resize event");
 	}
 };
+
+
+// TODO extern GameInstance* createGame();
+
 
 
 int main() {
 	Game* game = new Game();
 
-	if (!application::init(game)) {
-		printf("failed to init app!");
-		return -1;
+	try {
+		auto app = application::init(game);
+		app.run();
+
+
+		delete game;
 	}
-
-	application::run();
-
-	delete game;
+	catch (const std::runtime_error& err) {
+		std::cerr << err.what();
+	}
 
 	return 0;
 }

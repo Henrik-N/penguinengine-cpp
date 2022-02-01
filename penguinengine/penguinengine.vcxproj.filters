@@ -22,12 +22,15 @@
     <Filter Include="Source Files\memory">
       <UniqueIdentifier>{2770f3e0-833d-4751-8c86-a08adf0979e2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\renderer\vulkan">
+      <UniqueIdentifier>{17243f92-5f5c-4664-8f41-2875b1e701bd}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="macros.h">
+    <ClCompile Include="defines.h">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="application.ixx">
@@ -39,14 +42,46 @@
     <ClCompile Include="logger.ixx">
       <Filter>Source Files\core</Filter>
     </ClCompile>
-    <ClCompile Include="game_instance.ixx">
+    <ClCompile Include="gameInstance.ixx">
       <Filter>Source Files\core</Filter>
     </ClCompile>
-    <ClCompile Include="penguin_t.ixx">
+    <ClCompile Include="renderer.ixx">
+      <Filter>Source Files\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="rendererBackend.h">
+      <Filter>Source Files\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="rendererBackend.cpp">
+      <Filter>Source Files\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="vulkan.ixx">
+      <Filter>Source Files\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="rendererBackendVulkan.cpp">
+      <Filter>Source Files\renderer\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="vkContext.cpp">
+      <Filter>Source Files\renderer\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="platform_windows.cpp">
       <Filter>Source Files\core</Filter>
+    </ClCompile>
+    <ClCompile Include="swapchain.cpp">
+      <Filter>Source Files\renderer\vulkan</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="renderTypes.h">
+      <Filter>Source Files\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="rendererBackendVulkan.h">
+      <Filter>Source Files\renderer\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="vulkanTypes.h">
+      <Filter>Source Files\renderer\vulkan</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

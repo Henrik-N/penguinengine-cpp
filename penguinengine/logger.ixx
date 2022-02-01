@@ -1,109 +1,130 @@
 module;
-#include "macros.h"
+#include "defines.h"
 #include <format>
 #include <string>
 
 #include <cstdio>
+
+#include <source_location>
+#include <iostream>
+
 export module logger;
 
-import penguin_t;
 import platform;
 
-namespace logger {
-	export enum LogLevel : u8 {
-		Fatal,
-		Error,
-		Warning,
-		Info,
-		Debug,
-		Trace,
-	};
-
-	stringv asText(LogLevel level) {
-		switch (level) {
-			using enum LogLevel;
-		case Fatal: return "[FATAL]";
-		case Error: return "[ERROR]";
-		case Warning: return "[WARNING]";
-		case Info: return "[INFO]";
-		case Debug: return "[DEBUG]";
-		default: return "[TRACE]";
-		}
-	}
-
-	bool isError(LogLevel level) {
-		switch (level) {
-			using enum LogLevel;
-		case Fatal:
-		case Error:
-			return true;
-		default:
-			return false;
-		}
-	}
-	
-	export void output(LogLevel level, const stringv msg_tag, const stringv msg) {
-		const auto error_tag = asText(level);
-
-		
-		if (isError(level)) {
-			platform::writeConsoleError(msg_tag, msg, level);
-		}
-		else {
-			platform::writeConsoleMessage(msg_tag, msg, level);
-		}
-	}
-}
-
-using namespace logger;
+// todo add line & filename to some log types
+#define SOURCE_LOC_PARAM std::source_location& sourceLoc = std::source_location::current()
 
 export {
-	template <class... _types>
-	void lfatal(const stringv fmt, const _types&... args) {
-		const std::string msg = std::format(fmt, args...);
-		stringv msg_tag = asText(Fatal);
 
-		output(Fatal, msg_tag, msg);
-	}
+	template <class... Args>
+	void FATAL(const stringv fmt, const Args&... args);
 
-	template <class... _types>
-	void lerror(const stringv fmt, const _types&... args) {
-		const std::string msg = std::format(fmt, args...);
-		stringv msg_tag = asText(Error);
+	template <class... Args>
+	void ERROR(const stringv fmt, const Args&... args) OK;
 
-		output(Error, msg_tag, msg);
-	}
+	template <class... Args>
+	void WARNING(const stringv fmt, const Args&... args) OK;
 
-	template <class... _types>
-	void lwarning(const stringv fmt, const _types&... args) {
-		const std::string msg = std::format(fmt, args...);
-		stringv msg_tag = asText(Warning);
+	template <class... Args>
+	void INFO(const stringv fmt, const Args&... args) OK;
 
-		output(Warning, msg_tag, msg);
-	}
+	template <class... Args>
+	void DEBUG(const stringv fmt, const Args&... args) OK;
 
-	template <class... _types>
-	void linfo(const stringv fmt, const _types&... args) {
-		const std::string msg = std::format(fmt, args...);
-		const stringv msg_tag = asText(Info);
+	template <class... Args>
+	void TRACE(const stringv fmt, const Args&... args) OK;
+}
 
-		output(Info, msg_tag, msg);
-	}
 
-	template <class... _types>
-	void ldebug(const stringv fmt, const _types&... args) {
-		const std::string msg = std::format(fmt, args...);
-		stringv msg_tag = asText(Debug);
 
-		output(Debug, msg_tag, msg);
-	}
+enum LogLevel : u8 {
+    Fatal = 0,
+    Error = 1,
+    Warning = 2,
+    Info = 3,
+    Debug = 4,
+    Trace = 5,
+};
 
-	template <class... _types>
-	void ltrace(const stringv fmt, const _types&... args) {
-		const std::string msg = std::format(fmt, args...);
-		stringv msg_tag = asText(Trace);
+/// Set the level for the logger to use here
+constexpr LogLevel currentLogLevel = LogLevel::Trace;
 
-		output(Trace, msg_tag, msg);
-	}
+
+stringv asText(LogLevel level) OK {
+    switch (level) {
+        using enum LogLevel;
+    case Fatal: return "[FATAL]";
+    case Error: return "[ERROR]";
+    case Warning: return "[WARNING]";
+    case Info: return "[INFO]";
+    case Debug: return "[DEBUG]";
+    default: return "[TRACE]";
+    }
+}
+
+
+void output(const LogLevel level, const stringv msgTag, const stringv msg) OK {
+    if (level >= Error) {
+        platform::writeConsoleError(msgTag, msg, level);
+    }
+    else {
+        platform::writeConsoleMessage(msgTag, msg, level);
+    }
+}
+
+
+
+template <class... Args>
+void FATAL(const stringv fmt, const Args&... args) {
+    const std::string msg = std::format(fmt, args...);
+    stringv tag = asText(Fatal);
+    output(Fatal, tag, msg);
+    throw new std::runtime_error(std::format("{} {}", tag, msg)); // also throw on fatal
+}
+
+template <class... Args>
+void ERROR(const stringv fmt, const Args&... args) OK {
+    if constexpr (currentLogLevel >= Error) {
+        const std::string msg = std::format(fmt, args...);
+        stringv tag = asText(Error);
+        output(Error, tag, msg);
+    }
+}
+
+template <class... Args>
+void WARNING(const stringv fmt, const Args&... args) OK {
+    if constexpr (currentLogLevel >= Warning) {
+        const std::string msg = std::format(fmt, args...);
+        stringv tag = asText(Warning);
+        output(Warning, tag, msg);
+    }
+}
+
+template <class... Args>
+void INFO(const stringv fmt, const Args&... args) OK {
+    if constexpr (currentLogLevel >= Info) {
+        const std::string msg = std::format(fmt, args...);
+        const stringv tag = asText(Info);
+        output(Info, tag, msg);
+    }
+}
+
+template <class... Args>
+void DEBUG(const stringv fmt, const Args&... args) OK {
+    if constexpr (currentLogLevel >= Debug) {
+        const std::string msg = std::format(fmt, args...);
+        const stringv tag = asText(Debug);
+        output(Debug, tag, msg);
+    }
+}
+
+template <class... Args>
+void TRACE(const stringv fmt, const Args&... args) OK {
+    if constexpr (currentLogLevel >= Trace) {
+        const std::string msg = std::format(fmt, args...);
+        const stringv tag = asText(Trace);
+        output(Trace, tag, msg);
+    }
 }
 
