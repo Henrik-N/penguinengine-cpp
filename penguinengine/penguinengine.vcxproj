@@ -169,6 +169,7 @@
   <ItemGroup>
     <ClCompile Include="application.ixx" />
     <ClCompile Include="defines.h" />
+    <ClCompile Include="events.ixx" />
     <ClCompile Include="gameInstance.ixx" />
     <ClCompile Include="logger.ixx" />
     <ClCompile Include="main.cpp" />
@@ -181,6 +182,7 @@
     <ClCompile Include="swapchain.cpp" />
     <ClCompile Include="vkContext.cpp" />
     <ClCompile Include="vulkan.ixx" />
+    <ClCompile Include="vulkanTypes.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />
@@ -188,6 +190,7 @@
   <ItemGroup>
     <ClInclude Include="rendererBackendVulkan.h" />
     <ClInclude Include="renderTypes.h" />
+    <ClInclude Include="vkContext.h" />
     <ClInclude Include="vulkanTypes.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

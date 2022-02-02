@@ -10,12 +10,9 @@
 
 import platform;
 
-
-
 import logger;
 
-// in case I want to implement it in the future
-const vk::AllocationCallbacks* pAlloc = nullptr;
+/// ============ Vulkan instance =============
 
 vk::Instance
 initInstance(stringv appName) {
@@ -83,10 +80,11 @@ initInstance(stringv appName) {
         .ppEnabledExtensionNames = requiredExtensionNames.data(),
     };
 
-    return vk::createInstance(instanceCreateInfo, pAlloc);
+    return vk::createInstance(instanceCreateInfo);
 }
 
 
+/// ============ Vulkan debug messenger =============
 // declaring function pointers for callback functions to call
 PFN_vkCreateDebugUtilsMessengerEXT pfnCreateDebugUtilsMessenger;
 PFN_vkDestroyDebugUtilsMessengerEXT pfnDestroyDebugUtilsMessenger;
@@ -227,9 +225,11 @@ initDebugMessenger(vk::Instance instance) {
         .pfnUserCallback = &debugMessageFunc,
     };
 
-    return instance.createDebugUtilsMessengerEXT(createInfo, pAlloc);
+    return instance.createDebugUtilsMessengerEXT(createInfo);
 }
 
+
+/// ============ Vulkan surface =============
 
 #ifdef PENGUIN_PLATFORM_WINDOWS
 #include <windows.h>
@@ -251,89 +251,116 @@ initSurface(vk::Instance instance) {
 #endif
 
 
+/// ============ Vulkan physical device =============
+
+struct QueueFamilies {
+    Option<u32> graphicsFamily{};
+    Option<u32> presentFamily{};
+
+    static QueueFamilies find(vk::PhysicalDevice pd, vk::SurfaceKHR surface) {
+        const std::vector<vk::QueueFamilyProperties> queueFamilyProps = pd.getQueueFamilyProperties();
+
+        QueueFamilies queueFamilies{};
+
+        for (u32 queueIndex = 0; queueIndex < queueFamilyProps.size(); queueIndex++) {
+            // find queue with graphics queue flag
+            if (queueFamilyProps[queueIndex].queueFlags & vk::QueueFlagBits::eGraphics) {
+                queueFamilies.graphicsFamily = queueIndex;
+            }
+
+            if (pd.getSurfaceSupportKHR(queueIndex, surface)) {
+                queueFamilies.presentFamily = queueIndex;
+            }
+        }
+        return queueFamilies;
+    }
+};
+
+
 struct PhysicalDeviceSuitablityInfo {
     vk::PhysicalDeviceProperties props;
     vk::PhysicalDeviceFeatures features;
 };
 
+namespace vulkan {
+    VkContext::SwapchainSupport VkContext::SwapchainSupport::query(vk::PhysicalDevice pd, vk::SurfaceKHR surface) {
+        return VkContext::SwapchainSupport{
+            .capabilites = pd.getSurfaceCapabilitiesKHR(surface),
+            .surfaceFormats = pd.getSurfaceFormatsKHR(surface),
+            .presentModes = pd.getSurfacePresentModesKHR(surface),
+        };
+    }
+
+    bool VkContext::SwapchainSupport::isSupportComplete() OK {
+        return !surfaceFormats.empty() && !presentModes.empty();
+    }
+}
+
 
 bool
-isPhysicalDeviceSuitable(vk::PhysicalDevice physicalDevice, const PhysicalDeviceSuitablityInfo& info) OK {
+isPhysicalDeviceSuitable(vk::PhysicalDevice pd, vk::SurfaceKHR surface, QueueFamilies queueFamilies) OK {
+
     // TODO rate alternatives if no discrete GPU is available
-    if (info.props.deviceType == vk::PhysicalDeviceType::eDiscreteGpu) {
-        return true;
+    if (pd.getProperties().deviceType == vk::PhysicalDeviceType::eDiscreteGpu) {
+        return true; // device is not discrete graphics card // TODO allow alternatives but sort them
     }
-    return false;
-}
 
+    if (!queueFamilies.graphicsFamily.has_value() || !queueFamilies.presentFamily.has_value()) {
+        return false; // doesn't have required queues
+    }
 
-struct QueueFamilies {
-    Option<u32> graphicsFamily{};
-    Option<u32> presentFamily{};
-};
+    if (!vulkan::VkContext::SwapchainSupport::query(pd, surface).isSupportComplete()) {
+        return false; // doesn't have swapchain support
+    }
 
+    // check supports required extensions
+    const std::vector<vk::ExtensionProperties> pdExtensionProps = pd.enumerateDeviceExtensionProperties();
 
+    const std::vector<std::string> requiredExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 
-
-QueueFamilies
-findQueueFamilies(vk::PhysicalDevice physicalDevice, vk::SurfaceKHR surface) {
-
-    const std::vector<vk::QueueFamilyProperties> queueFamilyProps = physicalDevice.getQueueFamilyProperties();
-
-    QueueFamilies queueFamilies{};
-
-    for (u32 queueIndex = 0; queueIndex < queueFamilyProps.size(); queueIndex++) {
-        // find queue with graphics queue flag
-        if (queueFamilyProps[queueIndex].queueFlags & vk::QueueFlagBits::eGraphics) {
-            queueFamilies.graphicsFamily = queueIndex;
-        }
-
-        // try to find a present queue that isn't the same as the graphics queue
-        if (physicalDevice.getSurfaceSupportKHR(queueIndex, surface)) {
-            queueFamilies.presentFamily = queueIndex;
+    i32 matches = 0;
+    for (i32 i = 0; i < pdExtensionProps.size(); i++) {
+        if (pdExtensionProps[i].extensionName == requiredExtensions[i]) {
+            matches++;
         }
     }
 
-    if (!queueFamilies.graphicsFamily.has_value()) {
-        FATAL("couldn't find a graphics queue family");
-    } else if (physicalDevice.getSurfaceSupportKHR(queueFamilies.graphicsFamily.value(), surface)) {
-        // if the graphics queue has present support, 
-        // prefer this as it will probably be more performant using a single queue for this in most cases
-        queueFamilies.presentFamily = queueFamilies.graphicsFamily.value();
-    }
-    if (!queueFamilies.presentFamily.has_value()) {
-        FATAL("couldnt find a present queue family");
+    if (matches != requiredExtensions.size()) {
+        return false; // doesn't have required extensions
     }
 
-    return queueFamilies;
+    return true;
 }
+
 
 
 std::pair<vk::PhysicalDevice, QueueFamilies>
 selectPhysicalDevice(vk::Instance instance, vk::SurfaceKHR surface) {
     const std::vector<vk::PhysicalDevice> physicalDevices = instance.enumeratePhysicalDevices();
 
-    usize idx = -1;
-    for (usize i = 0; i < physicalDevices.size(); i++) {
-        if (physicalDevices[i].getProperties().deviceType == vk::PhysicalDeviceType::eDiscreteGpu) {
-            idx = i;
+    Option<vk::PhysicalDevice> outPd;
+    QueueFamilies outQueueFamilies;
+
+    for (const auto& pd : physicalDevices) {
+        const auto queueFamilies = QueueFamilies::find(pd, surface);
+
+        if (isPhysicalDeviceSuitable(pd, surface, queueFamilies)) {
+            outPd = pd;
+            outQueueFamilies = queueFamilies;
             break;
         }
     }
 
-    if (idx < 0) {
-        FATAL("No discrete gpus found");
-    } else {
-        INFO("Using gpu: {}", physicalDevices[idx].getProperties().deviceName);
+    if (!outPd.has_value()) {
+        FATAL("Failed to find a suitable physical device!");
     }
+    INFO("using {}", outPd.value().getProperties().deviceName);
 
-
-    /// TODO suitablity checks and ensure the device has the required extensions and swapchain is supported
-
-    const QueueFamilies queueFamilies = findQueueFamilies(physicalDevices[idx], surface);
-    return std::make_pair(physicalDevices[idx], queueFamilies);
+    return std::pair<vk::PhysicalDevice, QueueFamilies>{outPd.value(), outQueueFamilies};
 }
 
+
+/// ============ Vulkan logical device =============
 
 vk::Device
 createDevice(vk::PhysicalDevice pd, QueueFamilies queueFamilies, vk::Queue& graphicsQueue, vk::Queue& presentQueue) {
@@ -354,6 +381,7 @@ createDevice(vk::PhysicalDevice pd, QueueFamilies queueFamilies, vk::Queue& grap
 
     // device features to use (better check that they are available first)
     constexpr const vk::PhysicalDeviceFeatures features{};
+
 
     constexpr const char* enabledExtensionNames = VK_KHR_SWAPCHAIN_EXTENSION_NAME;
 
@@ -377,9 +405,7 @@ createDevice(vk::PhysicalDevice pd, QueueFamilies queueFamilies, vk::Queue& grap
 
 
 namespace vulkan {
-    VkContext
-        VkContext::init(stringv appName) {
-
+    VkContext VkContext::init(stringv appName) {
         const vk::Instance instance = initInstance(appName);
 
         const vk::DebugUtilsMessengerEXT debugMessenger = initDebugMessenger(instance);
@@ -392,28 +418,25 @@ namespace vulkan {
         vk::Queue presentQueue;
         const vk::Device device = createDevice(physicalDevice, queueFamilies, graphicsQueue, presentQueue);
 
-
-
         return VkContext{
             .instance = instance,
             .debugMessenger = debugMessenger,
             .surface = surface,
             .physicalDevice = physicalDevice,
+            .device = device,
             .graphicsQueue = graphicsQueue,
             .presentQueue = presentQueue,
         };
     }
 
-    void
-        VkContext::deinit() {
-
+    void VkContext::deinit() {
         device.destroy();
 
         instance.destroySurfaceKHR(surface);
 
-        instance.destroyDebugUtilsMessengerEXT(debugMessenger, pAlloc);
+        instance.destroyDebugUtilsMessengerEXT(debugMessenger);
 
-        instance.destroy(pAlloc);
+        instance.destroy();
     }
 }
 

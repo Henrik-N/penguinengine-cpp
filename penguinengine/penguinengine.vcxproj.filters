@@ -69,6 +69,12 @@
     <ClCompile Include="swapchain.cpp">
       <Filter>Source Files\renderer\vulkan</Filter>
     </ClCompile>
+    <ClCompile Include="events.ixx">
+      <Filter>Source Files\core</Filter>
+    </ClCompile>
+    <ClCompile Include="vulkanTypes.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />
@@ -82,6 +88,9 @@
     </ClInclude>
     <ClInclude Include="vulkanTypes.h">
       <Filter>Source Files\renderer\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="vkContext.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

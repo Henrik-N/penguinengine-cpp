@@ -1,10 +1,10 @@
-
 module;
-
 #include "defines.h"
 
+#ifdef PENGUIN_PLATFORM_WINDOWS
 #include <windows.h>
 #include <windowsx.h>
+#endif
 
 #include <iostream>
 #include <format>
@@ -15,7 +15,6 @@ module platform;
 
 
 #ifdef PENGUIN_PLATFORM_WINDOWS
-
 
 #ifdef PENGUIN_RENDERER_VULKAN
 namespace platform {

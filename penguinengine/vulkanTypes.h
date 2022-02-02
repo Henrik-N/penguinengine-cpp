@@ -20,29 +20,51 @@
 
 namespace vulkan {
     struct VkContext {
-        const vk::Instance instance;
-        const vk::DebugUtilsMessengerEXT debugMessenger;
-        const vk::SurfaceKHR surface;
+        struct SwapchainSupport {
+            vk::SurfaceCapabilitiesKHR capabilites;
+            std::vector<vk::SurfaceFormatKHR> surfaceFormats;
+            std::vector<vk::PresentModeKHR> presentModes;
 
-        const vk::PhysicalDevice physicalDevice;
+            static SwapchainSupport
+                query(vk::PhysicalDevice pd, vk::SurfaceKHR surface);
+            bool
+                isSupportComplete() OK;
+        };
 
-        const vk::Device device;
-        const vk::Queue graphicsQueue;
-        const vk::Queue presentQueue;
+        vk::Instance instance;
+        vk::DebugUtilsMessengerEXT debugMessenger;
+        vk::SurfaceKHR surface;
+
+        vk::PhysicalDevice physicalDevice;
+
+        vk::Device device;
+        vk::Queue graphicsQueue;
+        vk::Queue presentQueue;
 
         static VkContext
             init(stringv appName);
-
         void
             deinit();
+
+        SwapchainSupport 
+            querySwapchainSupport() const { return SwapchainSupport::query(physicalDevice, surface); }
+        vk::PhysicalDeviceMemoryProperties
+            getPhysicalDeviceMemoryProperties() const OK { return physicalDevice.getMemoryProperties(); }
     };
 
 
     struct Swapchain {
         const VkContext* context;
-        vk::SurfaceFormatKHR surfaceFormat;
-        // vk::PresentModeKHR presentMode;
+        vk::SurfaceFormatKHR surfaceFormat; // aka color depth
+        //vk::PresentModeKHR presentMode;
+        vk::Extent2D extent;
+        vk::SwapchainKHR swapchain;
 
+
+        static void
+            init(const VkContext& context, vk::Extent2D extent);
+        void
+            deinit();
     };
 }
 

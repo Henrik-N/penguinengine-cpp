@@ -12,6 +12,7 @@ void RendererBackend::init(stringv appName) {
 
     vulkan::init(appName);
 
+
     vulkan::deinit();
 
     #endif

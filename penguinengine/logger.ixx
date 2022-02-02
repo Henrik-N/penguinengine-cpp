@@ -16,7 +16,6 @@ import platform;
 #define SOURCE_LOC_PARAM std::source_location& sourceLoc = std::source_location::current()
 
 export {
-
 	template <class... Args>
 	void FATAL(const stringv fmt, const Args&... args);
 

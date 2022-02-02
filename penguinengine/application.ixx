@@ -9,6 +9,8 @@ import gameInstance;
 import logger;
 import renderer;
 
+import events;
+
 namespace application {
 
     struct Application {
@@ -26,8 +28,9 @@ namespace application {
     export Application init(GameInstance* gameInst);
 }
 
-module :private;
 
+
+module :private;
 
 namespace application {
     Application init(GameInstance* gameInst) {
@@ -41,6 +44,10 @@ namespace application {
             .height = config.windowStartHeight,
         };
 
+        events::SomeStruct some{};
+        some.testEvents();
+        //events::SomeStruct::testEvent();
+
         platform::init(platformInitInfo);
         INFO("platform layer initialized");
 
@@ -51,20 +58,12 @@ namespace application {
         INFO("renderer initialized");
 
 
-
-        // todo config->renderer
-        //auto* pRenderer = renderer::rendererInit();
-            //initRenderer<VulkanBackend>(RendererSelection::Vulkan);
-
-
-
         return Application {
             .windowWidth = config.windowStartWidth,
             .windowHeight = config.windowStartHeight,
             .lastFrameTime = 0.f,
             .isRunning = true,
             .pGame = gameInst,
-            //.pRenderer = pRenderer,
         };
     }
 
