@@ -5,72 +5,47 @@ module;
 
 export module events;
 
-import logger;
+export {
+    //struct Event {
+    //    i32 someData;
+    //};
 
-namespace events {
-    export {
-        struct EventResponse {
-            bool consume; // stop event from being propogated further
+    using ShouldConsumeEvent = bool;
+
+    template <typename Func, typename TEvent>
+    concept CEventFunc = requires(const Func& func, TEvent ev) {
+        { func(static_cast<TEvent&>(ev)) } -> std::convertible_to<ShouldConsumeEvent>;
+    };
+
+    template <typename Event>
+    struct EventDispatcher {
+    public:
+        explicit EventDispatcher(Event& ev) : _event(ev) {}
+
+        ShouldConsumeEvent dispatch(CEventFunc<Event> auto func) {
+            return func(_event);
         };
 
-
-        struct WindowEvent {
-            u32 newWidth;
-        };
-
-
-        struct Window {
-            u32 width;
-            u32 height;
-
-            using EventCallbackFn = std::function<void(WindowEvent&)>;
-
-            EventCallbackFn _callbackFn;
-
-            void setOnWindowSizeChangeCallback(const EventCallbackFn& callback) {
-                _callbackFn = callback;
-            }
-
-            void dispatchOnWindowSizeChangeEvent(WindowEvent& ev) {
-                width = ev.newWidth;
-
-                _callbackFn(ev);
-            }
-        };
-
-        struct SomeStruct {
-            void onWindowCallback(WindowEvent& ev) {
-                INFO("Window callback! new width: {}", ev.newWidth);
-            }
-
-            void testEvents() {
-                Window wind{ .width = 800, .height = 600 };
-
-                wind.setOnWindowSizeChangeCallback(std::bind(&SomeStruct::onWindowCallback, this, std::placeholders::_1));
-
-                WindowEvent winEvent{ .newWidth = 600 };
-
-                wind.dispatchOnWindowSizeChangeEvent(winEvent);
-            }
-        };
+    private:
+        Event& _event;
+    };
 
 
-        void
-            init();
-        void
-            deinit();
-    }
-}
+    struct SomeEvent {
+        u32 someData;
+    };
 
-module :private;
-
- namespace events {
-    void init() {
-        //
+    ShouldConsumeEvent someDispatchFunc(const SomeEvent& ev) {
+        return true;
     }
 
-    void deinit() {
-        //
-    }
+    namespace events {
+        void test() {
+            SomeEvent ev{ .someData = 2 };
+            EventDispatcher<SomeEvent> dispatcher(ev);
+            const ShouldConsumeEvent yeet = dispatcher.dispatch(&someDispatchFunc);
+
+        }
+    } 
 }
 

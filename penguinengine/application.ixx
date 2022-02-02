@@ -44,9 +44,7 @@ namespace application {
             .height = config.windowStartHeight,
         };
 
-        events::SomeStruct some{};
-        some.testEvents();
-        //events::SomeStruct::testEvent();
+        events::test();
 
         platform::init(platformInitInfo);
         INFO("platform layer initialized");
